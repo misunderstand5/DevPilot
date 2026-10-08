@@ -1,0 +1,8 @@
+{"id":"R01","question":"订单服务生产部署每批多少实例？","expected_docs":["order_service_deployment","order-service_deployment_sop"],"keywords":["25%"]}
+{"id":"R02","question":"订单服务错误率超过多少要停止发布？","expected_docs":["order_service_deployment","order-service_deployment_sop"],"keywords":["2%"]}
+{"id":"R03","question":"Redis 连接超时首先应该检查什么？","expected_doc":"redis_sop","keywords":["健康状态","端口"]}
+{"id":"R04","question":"线上 Redis 能不能直接使用 KEYS *？","expected_doc":"redis_sop","keywords":["禁止"]}
+{"id":"R05","question":"登录接口密码错误是什么错误码？","expected_doc":"user_api","keywords":["AUTH_002"]}
+{"id":"R06","question":"账号连续几次密码错误会临时锁定？","expected_doc":"user_api","keywords":["5"]}
+{"id":"R07","question":"支付回调延迟时需要检查哪些线程池指标？","expected_doc":"payment_incident_guide","keywords":["线程池"]}
+{"id":"R08","question":"payment-service 错误率超过多少应创建 P1？","expected_doc":"payment_incident_guide","keywords":["5%"]}

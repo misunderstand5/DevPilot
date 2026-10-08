@@ -1,0 +1,6 @@
+{"id":"A01","question":"订单服务怎么部署？","expected_intent":"knowledge","expected_tool":"rag_search","answer_keywords":["25%"]}
+{"id":"A02","question":"user/login 密码错误是什么错误码？","expected_intent":"knowledge","expected_tool":"rag_search","answer_keywords":["AUTH_002"]}
+{"id":"A03","question":"order-service 最近7天部署情况怎么样？","expected_intent":"database","expected_tool":"recent_deployments","answer_keywords":["v2.3"]}
+{"id":"A04","question":"现在有哪些未解决故障？","expected_intent":"database","expected_tool":"open_incidents","answer_keywords":["支付"]}
+{"id":"A05","question":"payment-service 现在有哪些工单？","expected_intent":"database","expected_tool":"open_tickets","answer_keywords":["支付"]}
+{"id":"A06","question":"order-service 昨天发布失败了，结合部署手册告诉我怎么排查。","expected_intent":"mixed","expected_tool":"rag_search","answer_keywords":["回滚","健康"]}

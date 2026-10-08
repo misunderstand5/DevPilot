@@ -1,0 +1,2 @@
+{"id":"C01","turns":["请记住：我叫小林，正在检查 order-service。","我叫什么，正在检查哪个服务？"],"answer_keywords":["小林","order-service"]}
+{"id":"C02","turns":["检查 payment-service 最近 14 天的发布情况。","它为什么失败？"],"answer_keywords":["payment-service"]}

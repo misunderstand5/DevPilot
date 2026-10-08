@@ -1,0 +1,25 @@
+{
+  "case_id": "online-boutique-v0107",
+  "name": "Google Cloud Online Boutique reference case",
+  "source_repository": "GoogleCloudPlatform/microservices-demo",
+  "source_tag": "v0.10.7",
+  "source_release_commit_short": "5b608cb",
+  "license": "Apache-2.0",
+  "purpose": "A reproducible public reference system for validating DevPilot; not production telemetry.",
+  "service_mapping": {
+    "order-service": "checkoutservice",
+    "payment-service": "paymentservice",
+    "shipping-service": "shippingservice",
+    "notification-service": "emailservice",
+    "inventory-service": "productcatalogservice",
+    "pricing-service": "currencyservice"
+  },
+  "sources": [
+    "https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/v0.10.7/README.md",
+    "https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/v0.10.7/kubernetes-manifests/checkoutservice.yaml"
+  ],
+  "knowledge_files": [
+    "architecture_and_service_map.md",
+    "checkout_incident_runbook.md"
+  ]
+}

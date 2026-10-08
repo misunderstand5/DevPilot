@@ -1,0 +1,8 @@
+{"id":"AB01","segment":"complex","question":"order-service 最近发布失败了，结合部署 SOP 给出排查和回滚建议。","keywords":["健康检查失败","回滚"]}
+{"id":"AB02","segment":"complex","question":"payment-service 当前有故障吗？结合支付故障指南给出检查项。","keywords":["payment-service","线程池"]}
+{"id":"AB03","segment":"complex","question":"结合订单服务最近发布和手册，判断是否存在需要关注的风险。","keywords":["order-service","失败"]}
+{"id":"AB04","segment":"simple","question":"Redis 连接超时时应该先检查什么，并说明禁止执行的高风险命令。","keywords":["连接","KEYS"]}
+{"id":"AB05","segment":"complex","question":"inventory-service 有未解决故障吗？结合故障 Runbook 给出止损步骤。","keywords":["inventory-service","故障"]}
+{"id":"AB06","segment":"complex","question":"shipping-service 最近发布情况如何？结合部署 SOP 判断是否需要回滚。","keywords":["shipping-service","回滚"]}
+{"id":"AB07","segment":"simple","question":"payment-service 支付回调延迟的知识库排查步骤是什么？","keywords":["连接池","线程池"]}
+{"id":"AB08","segment":"simple","question":"order-service 最近发布记录是什么？","keywords":["order-service","v2.3.2"]}
