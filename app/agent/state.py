@@ -7,6 +7,9 @@ class AgentState(TypedDict, total=False):
     user_id: str
     tenant_id: str
     user_role: str
+    user_roles: list[str]
+    user_permissions: list[str]
+    resource_scopes: list[dict[str, str]]
     trace_id: str
     query: str
     resolved_query: str

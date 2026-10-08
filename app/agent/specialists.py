@@ -12,6 +12,7 @@ from app.services.rag import get_rag_service
 from app.services.tools import get_service_status, open_incidents, open_tickets, recent_deployments
 from app.config import get_settings
 from app.security import AuthUser
+from app.services.rbac import ScopeGrant, scope_allows
 
 
 FINAL_POLICY = (
@@ -306,6 +307,9 @@ async def knowledge_agent(state: AgentState, *, synthesize: bool = True) -> dict
         auth_user = AuthUser(
             id=state["user_id"], tenant_id=state["tenant_id"], tenant_slug="",
             username="", role=state.get("user_role", "MEMBER"),
+            roles=tuple(state.get("user_roles", [])),
+            permissions=frozenset(state.get("user_permissions", [])),
+            scopes=tuple(ScopeGrant(**item) for item in state.get("resource_scopes", [])),
         ) if state.get("user_id") and state.get("tenant_id") else None
         items = await get_rag_service().search(state.get("resolved_query", state["query"]), user=auth_user)
     except Exception as exc:
@@ -348,6 +352,20 @@ async def ops_agent(state: AgentState, *, synthesize: bool = True) -> dict:
     facts: list[dict] = []
     tools: list[str] = []
     external_evidence: list[dict] = []
+    permission_by_action = {
+        "service_status": "ops.service.read", "deployments": "ops.deployment.read",
+        "incidents": "ops.incident.read", "tickets": "ops.ticket.read",
+    }
+    permission = permission_by_action.get(action or "")
+    permissions = set(state.get("user_permissions", []))
+    scopes = state.get("resource_scopes", [])
+    scope_key = service or "*"
+    if not permission or permission not in permissions:
+        result = OpsResult(status="error", error="permission_denied")
+        return _merge(state, name="ops_agent", result=result.model_dump())
+    if "service.authorization.manage" not in permissions and not scope_allows(scopes, permission, "SERVICE", scope_key):
+        result = OpsResult(status="error", error="resource_scope_denied")
+        return _merge(state, name="ops_agent", result=result.model_dump())
     try:
         if action == "service_status" and service:
             facts.append({"service_status": await get_service_status(service)})
@@ -365,6 +383,12 @@ async def ops_agent(state: AgentState, *, synthesize: bool = True) -> dict:
             result = OpsResult(status="empty", error="service_or_action_missing")
             return _merge(state, name="ops_agent", result=result.model_dump())
         if state.get("needs_github_evidence"):
+            repository = external_mcp_gateway.repository_for(service)
+            if "mcp.github.commit.read" not in permissions:
+                raise PermissionError("github_mcp_permission_denied")
+            if ("repository.authorization.manage" not in permissions
+                    and (not repository or not scope_allows(scopes, "mcp.github.commit.read", "REPOSITORY", repository))):
+                raise PermissionError("github_repository_scope_denied")
             deployment_rows = next(
                 (group["deployments"] for group in facts if "deployments" in group), []
             )

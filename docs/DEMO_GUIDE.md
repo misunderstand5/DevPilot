@@ -20,7 +20,7 @@ DevPilot 要证明的不是“模型能聊天”，而是以下五件事：
 | 知识与事实查询 | 3 分钟 | RAG Citation 与只读 Ops Tool |
 | Mixed 多 Agent 诊断 | 3 分钟 | GitHub MCP + RAG + Ops 联合证据 |
 | 上下文与长期记忆 | 2 分钟 | 同会话、刷新恢复、跨会话记忆 |
-| 安全、ACL 与评测 | 2 分钟 | 证据质量门、租户隔离、71 项测试 |
+| 安全、RBAC 与评测 | 2 分钟 | 四级角色、资源 Scope、文档 ACL、75 项测试 |
 | 总结与追问 | 2～3 分钟 | 技术取舍与后续规划 |
 
 推荐总时长为 12～15 分钟。
@@ -87,7 +87,7 @@ conda run --no-capture-output -n agentdev python scripts\eval_reference_case.py
 当前项目基线应为：
 
 ```text
-71 passed
+75 passed
 GitHub MCP status: success
 Reference case passed: true
 ```
@@ -341,7 +341,7 @@ conda run --no-capture-output -n agentdev python -m pytest -q
 当前预期：
 
 ```text
-71 passed
+75 passed
 ```
 
 覆盖范围包括：
@@ -498,7 +498,7 @@ conda run --no-capture-output -n agentdev python scripts\migrate_auth_acl.py
 - [ ] `/health` 返回 `ready=true`；
 - [ ] 本地模型为 healthy；
 - [ ] GitHub MCP 为 configured；
-- [ ] `pytest` 显示 71 passed；
+- [ ] `pytest` 显示 75 passed；
 - [ ] Online Boutique 文档已入库；
 - [ ] 准备好 Direct、Knowledge、Ops、Mixed 四类问题；
 - [ ] 准备一个证据不足问题；

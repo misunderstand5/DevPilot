@@ -16,7 +16,7 @@ from app.services.context_manager import context_manager
 from app.services.session_memory import public_memory, resolve_query, update_memory
 from app.services.long_term_memory import long_term_memory
 from app.services.structured_summary import refine_summary
-from app.security import AuthUser, current_user
+from app.security import AuthUser, current_user, require_permission
 
 router = APIRouter(prefix="/api/v1", tags=["chat"])
 
@@ -223,6 +223,10 @@ async def _chat_once(req: ChatRequest, auth_user: AuthUser):
         "user_id": auth_user.id,
         "tenant_id": auth_user.tenant_id,
         "user_role": auth_user.role,
+        "user_roles": list(auth_user.roles),
+        "user_permissions": sorted(auth_user.permissions),
+        "resource_scopes": [{"permission": item.permission, "resource_type": item.resource_type,
+                             "resource_key": item.resource_key} for item in auth_user.scopes],
         "trace_id": trace_id,
         "query": req.query,
         "execution_mode": req.execution_mode,
@@ -296,6 +300,7 @@ async def _chat_once(req: ChatRequest, auth_user: AuthUser):
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest, user: AuthUser = Depends(current_user)):
+    require_permission(user, "agent.chat.use")
     """Idempotent, per-session serialized entry point around one Agent execution."""
     req = req.model_copy(update={"user_id": user.id})
     if req.request_id:

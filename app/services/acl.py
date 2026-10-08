@@ -7,7 +7,7 @@ from app.security import AuthUser
 async def accessible_document_ids(user: AuthUser, *, write: bool = False) -> set[int]:
     permission = "WRITE" if write else "READ"
     async with session_scope() as db:
-        if user.role == "ADMIN":
+        if user.has_permission("kb.document.manage_all"):
             result = await db.execute(
                 text("SELECT id FROM kb_document WHERE tenant_id=:tenant"), {"tenant": user.tenant_id}
             )

@@ -15,7 +15,7 @@ DevPilot 是一个面向研发运维场景的证据驱动型 Copilot，将文档
 - **外部 MCP 证据**：可选接入只读 GitHub MCP，将发布记录中的 commit_sha 与真实代码变更关联。
 - **上下文工程**：Structured SessionMemory + Sliding Window + LLM Rolling Summary + ContextProjector。
 - **长期记忆**：基于 Qdrant 实现跨会话记忆，并按 tenant/user 隔离、处理冲突和时效性。
-- **企业权限边界**：JWT 身份认证、租户隔离、文档 ACL、用户级缓存与会话权限校验。
+- **企业权限边界**：四级 RBAC、Service/Repository Scope、JWT 身份认证、租户隔离、文档 ACL、用户级缓存与会话权限校验。
 - **本地优先推理**：支持 vLLM 本地模型与云端强模型角色路由，企业内部数据默认不出本地。
 - **可观测与评测**：组件级健康检查、工具/模型审计、检索评测、Agent A/B 与安全对抗测试。
 - **完整管理控制台**：运行总览、Agent 对话、发布记录、故障工单、知识库和历史会话管理。
@@ -157,7 +157,7 @@ GITHUB_MCP_REPOSITORIES={"order-service":"your-org/order-service"}
 17_PREPARE_REFERENCE_CASE_WIN11.cmd
 ```
 
-当前自动化测试基线：**71 tests passed**。
+当前自动化测试基线：**75 tests passed**；另有真实 API 的 RBAC 在线冒烟脚本。
 
 真实参考案例可额外运行 `python scripts/eval_reference_case.py`，验证固定来源知识能被 RAG 召回且 `reference` 发布记录可被 Ops 数据层读取。
 
@@ -169,6 +169,7 @@ GITHUB_MCP_REPOSITORIES={"order-service":"your-org/order-service"}
 - 生产环境必须更换数据库密码、认证密钥和初始用户密码。
 - `ALLOW_CLOUD_INTERNAL_DATA` 默认应保持 `false`。
 - 运行事实工具保持只读，并在工具层执行租户和资源权限校验。
+- `end_user → developer → tenant_admin` 按业务能力继承；`system_admin` 独立，不默认继承任何租户内容权限。完整设计见 [docs/RBAC_DESIGN.md](docs/RBAC_DESIGN.md)。
 - 已经公开过的 Key 必须在供应商控制台撤销，不能仅从 Git 历史中删除。
 
 详见 [SECURITY.md](SECURITY.md)。

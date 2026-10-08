@@ -7,7 +7,7 @@ from sqlalchemy import bindparam, text
 
 from app.db import session_scope
 from app.services.rag import get_rag_service
-from app.security import AuthUser, current_user
+from app.security import AuthUser, current_user, require_permission
 from app.services.acl import accessible_document_ids, can_access_document
 
 router = APIRouter(prefix="/api/v1/documents", tags=["documents"])
@@ -34,6 +34,7 @@ async def _temporary_upload(file: UploadFile) -> tuple[Path, str]:
 
 @router.get("")
 async def list_documents(limit: int = Query(50, ge=1, le=200), user: AuthUser = Depends(current_user)):
+    require_permission(user, "kb.document.read")
     allowed = await accessible_document_ids(user)
     if not allowed:
         return {"documents": [], "summary": {"total": 0, "indexed": 0, "chunks": 0}}
@@ -64,6 +65,7 @@ async def list_documents(limit: int = Query(50, ge=1, le=200), user: AuthUser = 
 @router.get("/{document_id}")
 async def document_detail(document_id: int, preview_chunks: int = Query(5, ge=0, le=20),
                           user: AuthUser = Depends(current_user)):
+    require_permission(user, "kb.document.read")
     if not await can_access_document(user, document_id):
         raise HTTPException(404, "document not found")
     async with session_scope() as db:
@@ -89,6 +91,7 @@ async def ingest(
     visibility: str = Form(default="TENANT", pattern="^(TENANT|PRIVATE)$"),
     user: AuthUser = Depends(current_user),
 ):
+    require_permission(user, "kb.document.create")
     path, filename = await _temporary_upload(file)
     try:
         return await get_rag_service().ingest_file(
@@ -110,6 +113,7 @@ async def update_document(
     visibility: str = Form(default="TENANT", pattern="^(TENANT|PRIVATE)$"),
     user: AuthUser = Depends(current_user),
 ):
+    require_permission(user, "kb.document.update")
     if not await can_access_document(user, document_id, write=True):
         raise HTTPException(404, "document not found or not writable")
     path, filename = await _temporary_upload(file)
@@ -134,6 +138,7 @@ async def update_document(
 
 @router.delete("/{document_id}")
 async def delete_document(document_id: int, user: AuthUser = Depends(current_user)):
+    require_permission(user, "kb.document.delete")
     if not await can_access_document(user, document_id, write=True):
         raise HTTPException(404, "document not found or not writable")
     deleted = await get_rag_service().delete_document(document_id, user.tenant_id)
@@ -150,6 +155,7 @@ class AclGrantRequest(BaseModel):
 @router.put("/{document_id}/acl")
 async def grant_document_access(document_id: int, req: AclGrantRequest,
                                 user: AuthUser = Depends(current_user)):
+    require_permission(user, "kb.acl.manage")
     if not await can_access_document(user, document_id, write=True):
         raise HTTPException(404, "document not found or not writable")
     async with session_scope() as db:

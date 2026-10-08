@@ -4,13 +4,14 @@ from sqlalchemy import text
 from app.db import session_scope
 from app.redis_store import redis_store
 from app.schemas import SessionRenameRequest
-from app.security import AuthUser, current_user
+from app.security import AuthUser, current_user, require_permission
 
 router = APIRouter(prefix="/api/v1/sessions", tags=["sessions"])
 
 
 @router.get("")
 async def list_sessions(limit: int = Query(20, ge=1, le=100), user: AuthUser = Depends(current_user)):
+    require_permission(user, "session.own.read")
     async with session_scope() as db:
         result = await db.execute(text("""
             SELECT s.id,s.title,s.created_at,s.last_active_at,COUNT(m.id) AS message_count,
@@ -31,6 +32,7 @@ async def get_session(
     limit: int = Query(50, ge=1, le=200),
     user: AuthUser = Depends(current_user),
 ):
+    require_permission(user, "session.own.read")
     async with session_scope() as db:
         owner = await db.execute(text("SELECT user_id,title FROM agent_session WHERE id=:s"), {"s": session_id})
         session = owner.first()
@@ -65,6 +67,7 @@ async def get_session(
 
 @router.patch("/{session_id}")
 async def rename_session(session_id: str, req: SessionRenameRequest, user: AuthUser = Depends(current_user)):
+    require_permission(user, "session.own.write")
     async with session_scope() as db:
         result = await db.execute(text("""
             UPDATE agent_session SET title=:t

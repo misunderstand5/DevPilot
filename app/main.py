@@ -14,6 +14,7 @@ from app.api.sessions import router as session_router
 from app.api.dashboard import router as dashboard_router
 from app.api.memories import router as memory_router
 from app.api.integrations import router as integration_router
+from app.api.rbac import router as rbac_router
 from app.config import get_settings
 from app.db import session_scope
 from app.redis_store import redis_store
@@ -29,6 +30,7 @@ app.include_router(session_router)
 app.include_router(dashboard_router)
 app.include_router(memory_router)
 app.include_router(integration_router)
+app.include_router(rbac_router)
 
 web_dir = Path(__file__).resolve().parent / "web"
 app.mount("/static", StaticFiles(directory=web_dir), name="static")

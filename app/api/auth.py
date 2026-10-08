@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy import text
 
 from app.db import session_scope
-from app.security import AuthUser, create_access_token, current_user, hash_password, require_admin, verify_password
+from app.security import AuthUser, _primary_role, create_access_token, current_user, hash_password, require_permission, verify_password
+from app.services.rbac import load_user_authorization
 
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
@@ -20,12 +21,15 @@ class LoginRequest(BaseModel):
 class CreateUserRequest(BaseModel):
     username: str = Field(min_length=1, max_length=100)
     password: str = Field(min_length=12, max_length=200)
-    role: str = Field(default="MEMBER", pattern="^(ADMIN|MEMBER)$")
+    role: str = Field(default="end_user", pattern="^(end_user|developer)$")
 
 
 def public_user(user: AuthUser) -> dict:
     return {"id": user.id, "tenant_id": user.tenant_id, "tenant": user.tenant_slug,
-            "username": user.username, "role": user.role}
+            "username": user.username, "role": user.role, "roles": list(user.roles),
+            "permissions": sorted(user.permissions),
+            "scopes": [{"permission": item.permission, "resource_type": item.resource_type,
+                        "resource_key": item.resource_key} for item in user.scopes]}
 
 
 @router.post("/login")
@@ -39,8 +43,10 @@ async def login(req: LoginRequest):
         row = result.first()
     if not row or row.status != "ACTIVE" or not verify_password(req.password, row.password_hash):
         raise HTTPException(status_code=401, detail="invalid tenant, username or password")
-    user = AuthUser(id=row.id, tenant_id=row.tenant_id, tenant_slug=row.tenant_slug,
-                    username=row.username, role=row.role)
+    roles, permissions, scopes = await load_user_authorization(str(row.id), str(row.role))
+    user = AuthUser(id=str(row.id), tenant_id=str(row.tenant_id), tenant_slug=str(row.tenant_slug),
+                    username=str(row.username), role=_primary_role(roles), roles=roles,
+                    permissions=permissions, scopes=scopes)
     return {"access_token": create_access_token(user), "token_type": "bearer", "user": public_user(user)}
 
 
@@ -51,15 +57,18 @@ async def me(user: AuthUser = Depends(current_user)):
 
 @router.post("/users")
 async def create_user(req: CreateUserRequest, admin: AuthUser = Depends(current_user)):
-    require_admin(admin)
+    require_permission(admin, "tenant.user.create")
     user_id = str(uuid.uuid4())
     try:
         async with session_scope() as db:
             await db.execute(text("""
                 INSERT INTO app_user(id,tenant_id,username,password_hash,role,status)
-                VALUES(:id,:tenant,:username,:password,:role,'ACTIVE')
+                VALUES(:id,:tenant,:username,:password,'MEMBER','ACTIVE')
             """), {"id": user_id, "tenant": admin.tenant_id, "username": req.username.strip(),
-                    "password": hash_password(req.password), "role": req.role})
+                    "password": hash_password(req.password)})
+            await db.execute(text("""INSERT INTO rbac_user_role(user_id,role_id,assigned_by)
+                SELECT :user,id,:actor FROM rbac_role WHERE code=:role"""),
+                             {"user": user_id, "actor": admin.id, "role": req.role})
     except Exception as exc:
         raise HTTPException(status_code=409, detail="username already exists in this tenant") from exc
     return {"id": user_id, "tenant_id": admin.tenant_id, "username": req.username.strip(), "role": req.role}

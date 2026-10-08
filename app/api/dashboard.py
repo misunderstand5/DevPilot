@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import bindparam, text
 
 from app.db import session_scope
-from app.security import AuthUser, current_user
+from app.security import AuthUser, current_user, require_permission
 from app.services.acl import accessible_document_ids
+from app.services.rbac import accessible_service_names
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
 
@@ -16,6 +17,7 @@ async def _rows(db, sql: str):
 @router.get("")
 async def dashboard(user: AuthUser = Depends(current_user)):
     """Return the compact read-only operations view used by the web console."""
+    require_permission(user, "agent.chat.use")
     async with session_scope() as db:
         services = await _rows(db, """
             SELECT id,name,owner_team,environment,status,description,updated_at
@@ -49,6 +51,13 @@ async def dashboard(user: AuthUser = Depends(current_user)):
             """).bindparams(bindparam("ids", expanding=True))
             result = await db.execute(statement, {"ids": sorted(allowed)})
             documents = [dict(row._mapping) for row in result]
+
+    service_scope = await accessible_service_names(user)
+    if service_scope is not None:
+        services = [item for item in services if item["name"] in service_scope]
+        deployments = [item for item in deployments if item["service_name"] in service_scope]
+        incidents = [item for item in incidents if item["service_name"] in service_scope]
+        tickets = [item for item in tickets if item["service_name"] in service_scope]
 
     return {
         "summary": {

@@ -73,7 +73,7 @@ Query → MySQL ACL → Qdrant 原生 document_id 过滤 → Dense + BM25 → RR
 ## 真实指标
 
 ```text
-pytest                         71 passed
+pytest                         75 passed
 Intent Accuracy               100%（6 条）
 Tool Success Rate             100%（6 条）
 Answer Keyword Accuracy       100%（6 条）
@@ -101,7 +101,7 @@ P50 / P95                     222.9 ms / 9166 ms
 
 ## 30 秒介绍
 
-> 我实现了一个研发运维场景的本地优先企业 Agent。系统用 FastAPI 和 LangGraph 编排 Direct、Knowledge、Ops、Diagnosis、Supervisor，用 ACL 过滤的 Qdrant Dense、BM25 和 RRF 检索文档，用参数化只读工具查询实时数据，并通过本地只读 GitHub MCP 关联 Commit 证据；同时实现 JWT 租户认证、结构化摘要、会话快照和跨会话长期记忆。目前 71 项测试通过，首批 12 条困难在线 A/B 中，多 Agent 严格通过率从 66.67% 提升到 75%。
+> 我实现了一个研发运维场景的本地优先企业 Agent。系统用 FastAPI 和 LangGraph 编排 Direct、Knowledge、Ops、Diagnosis、Supervisor，用 ACL 过滤的 Qdrant Dense、BM25 和 RRF 检索文档，用参数化只读工具查询实时数据，并通过本地只读 GitHub MCP 关联 Commit 证据；同时实现四级 RBAC、服务/仓库范围授权、结构化摘要、会话快照和跨会话长期记忆。目前 75 项测试通过，首批 12 条困难在线 A/B 中，多 Agent 严格通过率从 66.67% 提升到 75%。
 
 GitHub MCP 实测链路：`版本查询 → recent_deployments → get_commit → RAG → Diagnosis/Supervisor → Evidence Gate`。Online Boutique `v0.10.7 / 5b608cb` 查询中，外部证据成功且质量评分 100%。
 

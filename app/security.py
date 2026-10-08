@@ -11,6 +11,7 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.db import session_scope
+from app.services.rbac import LEGACY_ROLE_MAP, ScopeGrant, load_user_authorization, permissions_for_roles, scope_allows
 
 
 PBKDF2_ITERATIONS = 310_000
@@ -23,6 +24,24 @@ class AuthUser:
     tenant_slug: str
     username: str
     role: str
+    roles: tuple[str, ...] = ()
+    permissions: frozenset[str] = frozenset()
+    scopes: tuple[ScopeGrant, ...] = ()
+
+    def __post_init__(self) -> None:
+        # Keep decoded legacy tokens and test fixtures compatible while making
+        # the authorization decision from normalized roles/permissions.
+        if not self.roles:
+            normalized = LEGACY_ROLE_MAP.get(self.role, self.role.lower())
+            object.__setattr__(self, "roles", (normalized,))
+        if not self.permissions:
+            object.__setattr__(self, "permissions", frozenset(permissions_for_roles(self.roles)))
+
+    def has_permission(self, permission: str) -> bool:
+        return permission in self.permissions
+
+    def has_scope(self, permission: str, resource_type: str, resource_key: str) -> bool:
+        return scope_allows(self.scopes, permission, resource_type, resource_key)
 
 
 def hash_password(password: str, *, salt: bytes | None = None) -> str:
@@ -98,10 +117,36 @@ async def current_user(authorization: str | None = Header(default=None)) -> Auth
         row = result.first()
     if not row or row.status != "ACTIVE":
         raise HTTPException(status_code=401, detail="user disabled or not found")
-    return AuthUser(id=row.id, tenant_id=row.tenant_id, tenant_slug=row.tenant_slug,
-                    username=row.username, role=row.role)
+    roles, permissions, scopes = await load_user_authorization(str(row.id), str(row.role))
+    return AuthUser(id=str(row.id), tenant_id=str(row.tenant_id), tenant_slug=str(row.tenant_slug),
+                    username=str(row.username), role=_primary_role(roles), roles=roles,
+                    permissions=permissions, scopes=scopes)
+
+
+def _primary_role(roles: tuple[str, ...]) -> str:
+    for role in ("system_admin", "tenant_admin", "developer", "end_user"):
+        if role in roles:
+            return role
+    return roles[0] if roles else "end_user"
+
+
+def require_permission(
+    user: AuthUser,
+    permission: str,
+    *,
+    resource_type: str | None = None,
+    resource_key: str | None = None,
+) -> None:
+    if not user.has_permission(permission):
+        raise HTTPException(status_code=403, detail=f"permission required: {permission}")
+    if resource_type and resource_key and not user.has_scope(permission, resource_type, resource_key):
+        manager_permission = {
+            "SERVICE": "service.authorization.manage",
+            "REPOSITORY": "repository.authorization.manage",
+        }.get(resource_type)
+        if not manager_permission or not user.has_permission(manager_permission):
+            raise HTTPException(status_code=403, detail=f"resource scope required: {resource_type}/{resource_key}")
 
 
 def require_admin(user: AuthUser):
-    if user.role != "ADMIN":
-        raise HTTPException(status_code=403, detail="admin role required")
+    require_permission(user, "tenant.user.create")

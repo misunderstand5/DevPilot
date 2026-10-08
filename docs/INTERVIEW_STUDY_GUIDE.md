@@ -582,7 +582,8 @@ STRONG 请求在以下情况改用 LOCAL：
 - 服务端从 token subject 获取 user_id、tenant_id 和 role；
 - 每次请求重新检查用户是否 ACTIVE；
 - session、文档、长期记忆均执行用户或租户过滤；
-- ADMIN 与 MEMBER 权限分离；
+- `end_user`、`developer`、`tenant_admin`、`system_admin` 四级 RBAC；业务角色按能力继承，系统管理员独立于租户内容权限；
+- Service/Repository Scope 约束 Ops 与 GitHub MCP，知识检索继续叠加租户与文档 ACL；
 - 生产模式遇到空密码、演示密码或弱 `AUTH_SECRET_KEY` 会拒绝启动。
 
 仍未实现企业 SSO/OIDC、MFA、Refresh Token、Token 撤销列表和细粒度业务 RBAC，所以应称为“真实本地认证与 ACL 基线”，不能称为完整 IAM。
@@ -851,7 +852,7 @@ request_id 保证幂等；Redis session lock 保证同一会话一次只处理�
 ### 自动化测试
 
 ```text
-71 passed
+75 passed
 ```
 
 ### Agent 小型评测集（6 条）
@@ -904,7 +905,7 @@ request_id 保证幂等；Redis session lock 保证同一会话一次只处理�
 
 ### 17.1 30 秒版本
 
-> 我做了一个研发运维场景的本地优先企业 Agent。它用 FastAPI 和 LangGraph 编排 Direct、Knowledge、Ops、Diagnosis、Supervisor，通过 ACL 过滤的 Qdrant Dense、BM25 和 RRF 检索文档，通过参数化只读工具查询 MySQL 实时数据，并使用本地只读 GitHub MCP 关联代码证据。系统实现了 JWT 租户认证、滑动窗口、结构化 LLM 摘要、可恢复 Session Snapshot 和跨会话长期记忆。当前 71 项自动化测试通过；首批 12 条困难在线 A/B 中，多 Agent 严格通过率从 66.67% 提升到 75%。
+> 我做了一个研发运维场景的本地优先企业 Agent。它用 FastAPI 和 LangGraph 编排 Direct、Knowledge、Ops、Diagnosis、Supervisor，通过 ACL 过滤的 Qdrant Dense、BM25 和 RRF 检索文档，通过参数化只读工具查询 MySQL 实时数据，并使用本地只读 GitHub MCP 关联代码证据。系统实现了四级 RBAC、Service/Repository Scope、JWT 租户认证、滑动窗口、结构化 LLM 摘要、可恢复 Session Snapshot 和跨会话长期记忆。当前 75 项自动化测试通过；首批 12 条困难在线 A/B 中，多 Agent 严格通过率从 66.67% 提升到 75%。
 
 ### 17.2 两分钟版本
 
@@ -917,7 +918,7 @@ request_id 保证幂等；Redis session lock 保证同一会话一次只处理�
 - 基于 FastAPI、LangGraph、MySQL、Redis、Qdrant 与 vLLM 构建研发运维 Agent，支持企业知识问答、发布/故障/工单查询和多来源诊断。
 - 实现 Dense + BM25 + RRF 混合检索、Qdrant 原生 ACL 过滤、文档版本更新、最低相关性过滤和 chunk 级引用；8 条检索样例 Recall@5 100%、MRR 0.9375。
 - 设计 token-aware 滑动窗口、结构化 LLM 摘要、Session Snapshot 与租户/用户隔离的跨会话记忆，支持冲突版本、有效期、删除和 Redis 失效恢复。
-- 使用 JWT 租户认证、request_id 幂等、Redis 会话锁、只读工具白名单、MCP 超时降级、模型隐私降级和调用审计提升可靠性；71 项自动化测试通过。
+- 使用四级 RBAC、资源 Scope、JWT 租户认证、request_id 幂等、Redis 会话锁、只读工具白名单、MCP 超时降级、模型隐私降级和调用审计提升可靠性；75 项自动化测试通过。
 
 ## Online Boutique 与 GitHub MCP 实践
 

@@ -102,6 +102,8 @@ async def test_ops_agent_joins_internal_deployment_with_external_mcp(monkeypatch
     result = await ops_agent({
         "query": "这次 commit 改了什么", "trace_id": "trace", "current_service": "order-service",
         "ops_action": "deployments", "needs_github_evidence": True, "session_memory": {},
+        "user_permissions": ["ops.deployment.read", "mcp.github.commit.read", "service.authorization.manage", "repository.authorization.manage"],
+        "resource_scopes": [],
         "agent_results": {}, "model_calls": [], "tools_used": [], "external_evidence": [],
     }, synthesize=False)
 
@@ -133,6 +135,8 @@ async def test_ops_agent_selects_commit_for_requested_version(monkeypatch):
         "query": "v0.10.7 这个 commit 改了什么", "trace_id": "trace",
         "current_service": "order-service", "ops_action": "deployments",
         "needs_github_evidence": True, "session_memory": {}, "agent_results": {},
+        "user_permissions": ["ops.deployment.read", "mcp.github.commit.read", "service.authorization.manage", "repository.authorization.manage"],
+        "resource_scopes": [],
         "model_calls": [], "tools_used": [], "external_evidence": [],
     }, synthesize=False)
     assert captured["commit_sha"] == "5b608cb"
