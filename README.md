@@ -183,6 +183,7 @@ GITHUB_MCP_REPOSITORIES={"order-service":"your-org/order-service"}
 - [外部 MCP 集成设计](docs/EXTERNAL_MCP_INTEGRATION.md)
 - [真实参考案例：Online Boutique v0.10.7](docs/REAL_REFERENCE_CASE.md)
 - [简历项目描述与面试表达](docs/RESUME_PROJECT_DESCRIPTION.md)
+- [项目演示与测试手册](docs/DEMO_GUIDE.md)
 
 ## Roadmap
 
