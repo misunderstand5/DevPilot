@@ -33,6 +33,8 @@ AUTH_ADMIN_PASSWORD=<admin-password>
 AUTH_ENGINEER_PASSWORD=<engineer-password>
 ```
 
+Windows 本地开发可直接运行 `02_ONE_CLICK_START_WIN11.cmd`：它会检测并启动 Docker Desktop，等待 Linux Engine 就绪，再通过 `scripts/ensure_local_env.py` 补齐缺失的随机本地凭据。生成的演示登录信息保存在 Git 已忽略的 `.devpilot-credentials.txt`。服务器和生产部署不要使用该自动生成流程，应通过 Secret Manager 或 CI/CD Secret 注入上述变量。
+
 本地模型模式：
 
 ```env

@@ -124,6 +124,8 @@ AUTH_ENGINEER_PASSWORD=<engineer-password>
 02_ONE_CLICK_START_WIN11.cmd
 ```
 
+本地开发首次运行时，启动脚本会自动启动 Docker Desktop，并为缺失的数据库、JWT 和演示账号生成随机凭据。登录信息只写入 Git 已忽略的 `.devpilot-credentials.txt`；如果已有 `devpilot-mysql` 数据卷，会复用容器原有数据库密码，避免修改 `.env` 后无法连接旧数据。生产环境仍必须使用 Secret Manager 显式配置，不能依赖本地自动生成。
+
 默认入口：
 
 - Web 控制台：<http://127.0.0.1:8001/>

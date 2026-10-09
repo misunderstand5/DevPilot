@@ -2,6 +2,8 @@
 setlocal
 chcp 65001 >nul
 cd /d %~dp0
+call scripts\ensure_docker_win11.cmd || exit /b 1
+conda run -n agentdev python scripts\ensure_local_env.py || exit /b 1
 docker compose -f docker-compose.infra.yml up -d || exit /b 1
 conda run -n agentdev python scripts\wait_infra.py || exit /b 1
 conda run -n agentdev python scripts\migrate_auth_acl.py || exit /b 1

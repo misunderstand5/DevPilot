@@ -1,6 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
+call scripts\ensure_docker_win11.cmd || exit /b 1
 docker inspect devpilot-github-mcp >nul 2>nul
 if errorlevel 1 (
   docker run -d --name devpilot-github-mcp --restart unless-stopped ^
