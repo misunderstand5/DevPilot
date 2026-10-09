@@ -180,7 +180,8 @@ GITHUB_MCP_REPOSITORIES={"order-service":"your-org/order-service"}
 
 - [多 Agent V2 架构](docs/MULTI_AGENT_V2.md)
 - [上下文、RAG 与会话设计](docs/CONTEXT_RAG_SESSION_DESIGN.md)
-- [项目学习与面试指南](docs/INTERVIEW_STUDY_GUIDE.md)
+- [最新项目学习与面试指南 V2](docs/INTERVIEW_STUDY_GUIDE_V2.md)
+- [项目学习与面试详细长版](docs/INTERVIEW_STUDY_GUIDE.md)
 - [面试速查表](docs/INTERVIEW_CHEATSHEET.md)
 - [部署指南](docs/DEPLOYMENT.md)
 - [外部 MCP 集成设计](docs/EXTERNAL_MCP_INTEGRATION.md)

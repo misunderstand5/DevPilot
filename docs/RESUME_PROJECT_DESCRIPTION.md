@@ -1,58 +1,54 @@
-# DevPilot 简历项目描述与面试表达
+# DevPilot 最新简历内容（2026-10）
 
-## 简历推荐版
+## 推荐放入简历的版本
 
-**DevPilot——企业级研发运维多 Agent Copilot**  
-`FastAPI / LangGraph / MySQL / Redis / Qdrant / vLLM / Qwen / RAG / BM25 / RRF / MCP / JWT / ACL / Docker`
+### DevPilot——企业级研发运维多 Agent Copilot
 
-**项目描述：** 面向研发运维场景构建证据驱动的对话式 Copilot，将部署规范、故障 Runbook 等静态知识与服务状态、发布、事故、工单及 GitHub Commit 等动态事实统一到一个工作入口，帮助工程师连续完成“查知识—查现状—联合诊断—生成处理方案”。
+**技术栈：** `FastAPI / LangGraph / MySQL / Redis / Qdrant / vLLM / Qwen / Hybrid RAG / MCP / JWT / RBAC / Docker`
 
-- 设计 Direct、Knowledge、Ops、Mixed 语义路由及 Knowledge、Ops、Diagnosis、Supervisor 多 Agent 工作流，按问题证据需求动态选择快速路径或协同诊断路径。
-- 构建 Dense + BM25 + RRF 混合检索，支持文档切块、向量化、版本更新、来源追踪、ACL 过滤和答案引用，并以 Google Cloud Online Boutique `v0.10.7` 建立可复现的微服务参考案例。
-- 将服务状态、发布、事故和工单封装为参数化只读工具，禁止模型生成 SQL；通过 JWT、租户隔离、资源 ACL、请求幂等和工具审计约束数据访问。
-- 实现“滑动窗口 + LLM 滚动摘要 + Context Projector”的会话上下文工程，以及基于 Qdrant、按租户和用户过滤的跨会话长期记忆。
-- 本地部署 GitHub 官方 MCP Server，采用服务端只读模式、`repos` 工具集和 `get_commit` 客户端白名单，将发布记录中的版本与 Commit 关联为可追踪代码证据。
-- 增加 Evidence Quality Gate，确定性检查知识引用、Ops 事实和代码来源；实现四级 RBAC、服务/仓库资源范围与文档 ACL 组合授权，现有 **75 项自动化测试全部通过**。
+**项目描述：** 面向研发运维场景构建证据驱动的对话式 Copilot，将部署规范、故障 Runbook 等静态知识，与服务状态、发布、事故、工单和 GitHub Commit 等动态事实统一到一个工作入口，帮助工程师连续完成“查知识—查现状—联合诊断—生成处理方案”，并通过权限和证据约束降低大模型事实幻觉。
 
-## 一句话介绍
+**核心职责与成果：**
 
-> DevPilot 不是普通的企业知识库聊天机器人，而是面向研发运维的证据驱动型 Copilot：RAG 回答“规范上应该怎么做”，只读业务工具回答“系统实际发生了什么”，GitHub MCP 回答“对应代码改了什么”，再由多 Agent 联合诊断并通过证据质量门阻止无依据结论。
+- 设计 Direct、Knowledge、Ops、Mixed 四类语义路由，以及 Knowledge、Ops、Diagnosis、Supervisor 专业 Agent 工作流；简单请求走快速路径，复杂问题按证据需求进入有界多 Agent 协作。
+- 构建 Dense + BM25 + RRF 混合检索链路，完成文档解析、切块、向量化、版本更新、相关性过滤、Qdrant 原生过滤和 chunk 级引用，并支持 Markdown、TXT、PDF、DOCX 企业资料管理。
+- 将服务状态、发布、事故和工单封装为四个参数化只读工具，禁止模型直接生成 SQL；通过 GitHub 官方 MCP Server 将发布版本与 Commit、变更文件及代码链接关联。
+- 实现“滑动窗口 + 结构化 LLM 滚动摘要 + SessionMemory + Context Projector”的上下文工程，并以 MySQL Snapshot 恢复会话、Qdrant 按 `tenant_id + user_id` 隔离跨会话长期记忆。
+- 建设 `end_user / developer / tenant_admin / system_admin` 四级 RBAC，叠加 Service/Repository Scope 与文档 ACL；权限同时在 API 和 Agent 工具调用层校验，系统管理员不默认继承租户内容访问权。
+- 实现 request_id 幂等、Redis 会话锁、模型隐私路由、超时降级、Evidence Quality Gate、健康检查和 Windows 一键部署；当前 **75 项自动化测试通过**。
 
-## 面试展开版
+**项目亮点：**
 
-项目主要解决研发排障中的信息割裂：规范存在文档中，生产事实存在发布、事故和工单系统中，代码变化又在 GitHub。传统 RAG 只能回答文档知识，无法证明当前运行状态；单纯 Tool Calling 又缺少规范约束。因此系统先通过语义路由区分 Direct、Knowledge、Ops 和 Mixed，再决定调用 RAG、内部只读工具或外部 MCP。
+- 使用 Google Cloud Online Boutique `v0.10.7` 构建可复现的微服务参考案例，完成 `发布记录 → GitHub Commit → RAG Runbook → 多 Agent 诊断` 的完整证据链。
+- 建设 240 条、12 类困难评测集；首批 12 条在线 A/B 中，多 Agent 严格通过率由 **66.67% 提升至 75.00%**，P50 由 **6264 ms 降至 5019 ms**。
+- RAG 小型基准集 Recall@5 达到 **100%**、MRR 为 **0.9375**；明确标注样本规模，不将实验结果包装成生产 SLA。
 
-Knowledge 路径使用 Dense、BM25 和 RRF 组合召回，并在检索前执行租户和文档 ACL。Ops 路径只开放参数化只读查询，不允许模型直接接触数据库。复杂问题由 Diagnosis 对知识与事实进行关联，再由 Supervisor 输出最终答案。涉及版本和代码归因时，系统从发布记录定位用户指定版本对应的 Commit，然后通过本地 GitHub MCP 获取提交说明、变更文件和链接。
+## 空间有限时的压缩版
 
-为了避免“Agent 看起来会回答，但没有可靠证据”，响应前增加确定性 Evidence Quality Gate：知识问题必须有 Citation，运行事实必须来自内部工具，代码归因必须有成功的外部证据。证据不足时保留回答但标记 `insufficient`，前端直接展示评分。
+### DevPilot——企业级研发运维多 Agent Copilot
 
-## 可量化结果与边界
+`FastAPI / LangGraph / MySQL / Redis / Qdrant / vLLM / RAG / MCP / RBAC / Docker`
 
-- 75 项自动化测试通过，并完成真实 API RBAC 冒烟验证。
-- 首批 12 条困难 A/B：多 Agent 严格通过率由 66.67% 提升到 75.00%。
-- Online Boutique 真实参考案例：固定 `v0.10.7`，RAG 成功召回，Ops 参考发布可读取。
-- GitHub MCP：账号鉴权成功，`get_commit` 实际返回 `5b608cb` 的提交信息与变更文件。
-- Mixed 端到端：`recent_deployments + get_commit + rag_search` 全部成功，Evidence Quality 评分 1.0。
-- 公开参考案例不是生产遥测；项目尚未连接真实 Prometheus/Kubernetes/Trace，因此不会声称可以提供真实生产 P95/P99。
+- 构建面向研发运维的证据驱动 Copilot，以四类语义路由和 Knowledge/Ops/Diagnosis/Supervisor 多 Agent 协同完成知识查询、实时事实查询和联合诊断。
+- 实现 Dense+BM25+RRF 混合检索、参数化只读 Ops 工具及 GitHub MCP 代码证据链，禁止模型生成 SQL，回答支持来源引用与证据质量检查。
+- 设计滑动窗口、结构化滚动摘要、Session Snapshot 与用户级长期记忆；实现四级 RBAC、资源 Scope、文档 ACL、幂等和会话锁。
+- 75 项自动化测试通过；240 条困难评测集首批 A/B 中，多 Agent 严格通过率由 66.67% 提升至 75.00%。
 
-## 高频面试问题
+## 一句话项目介绍
 
-### 为什么需要多 Agent？
+> DevPilot 不是单纯把企业文档接入大模型，而是面向研发运维的证据驱动型 Copilot：RAG 回答“规范上应该怎么做”，只读业务工具回答“系统实际发生了什么”，GitHub MCP 回答“对应代码改了什么”，再由有界多 Agent 工作流联合诊断，并通过 RBAC 和证据质量门保证结果可追溯、权限可控制。
 
-不是为了增加角色数量，而是隔离证据职责：Knowledge 只能处理文档，Ops 只能获取参数化事实，Diagnosis 负责关联假设，Supervisor 负责最终表达。简单问题走单 Agent 快速路径，只有 Mixed 或高风险问题进入完整协作链路。
+## 面试时不能夸大的内容
 
-### MCP 与普通函数调用有什么区别？
+- Online Boutique 是公开参考案例，不是真实生产流量和遥测。
+- 240 条是困难评测集总规模，当前在线 A/B 实际运行的是首批 12 条。
+- 系统已有应用级 RBAC，但还未接入企业 SSO、MFA、SCIM 和集中式策略引擎。
+- 当前复杂路径是固定有界图，不是能够无限自主规划的通用 Agent。
+- 尚未接入真实 Prometheus、Kubernetes 和 OpenTelemetry，因此不能声称已经完成真实生产根因定位。
 
-内部 MySQL 工具与应用同进程、同权限域，Python 函数调用延迟更低。GitHub 属于独立外部系统，使用 MCP 能统一工具发现、输入 Schema、传输和权限约束。项目没有为了使用 MCP 而把所有内部函数都网络化。
+## 投递不同岗位时的侧重点
 
-### 为什么现在没有使用 A2A？
-
-A2A 面向独立 Agent 服务之间的身份、能力发现和任务协作。当前专业 Agent 属于同一应用和同一 LangGraph，使用 A2A 只会增加网络、鉴权和一致性成本。只有未来跨团队或跨系统部署独立 Agent 时才值得引入。
-
-### 如何降低幻觉？
-
-通过语义路由、RAG 引用、参数化只读工具、GitHub 代码证据、租户 ACL、无答案阈值和 Evidence Quality Gate 共同约束。模型负责综合与表达，不能替代事实来源。
-
-### 下一步如何升级？
-
-优先接入 Prometheus/Kubernetes/OpenTelemetry 的只读工具，补齐指标、Pod 和 Trace 证据；生产写操作必须增加 Human-in-the-loop 审批、持久化 checkpoint、幂等执行和补偿机制。之后再根据复杂规划评测结果决定是否加入预算受限的 Planner/Critic。
+- **AI Agent / 大模型应用岗：** 突出语义路由、多 Agent 职责隔离、Context Projector、模型网关、Evidence Quality Gate 和单/多 Agent A/B。
+- **RAG / 知识库岗：** 突出文档解析、版本管理、Dense+BM25+RRF、相关性阈值、Qdrant 原生过滤、Citation 和无答案处理。
+- **后端 / 平台工程岗：** 突出 FastAPI 异步接口、MySQL/Redis/Qdrant 分工、幂等、会话锁、四级 RBAC、资源 Scope、健康检查和 Docker 部署。
+- **SRE / 研发效能岗：** 突出知识与运行事实分离、参数化只读工具、GitHub Commit 归因、故障诊断工作流、审计和可观测性接入设计。

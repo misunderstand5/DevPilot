@@ -13,7 +13,7 @@ DevPilot 是一个面向研发运维场景的本地优先企业 Agent，通过�
 - 模型：vLLM 本地模型、可选 OpenAI-compatible 强模型
 - 工具：参数化只读 SQL、MCP
 - 上下文：滑动窗口、结构化 LLM 摘要、Session Snapshot、SessionMemory、Long-term Memory
-- 安全：JWT、tenant/user ACL、Qdrant 原生过滤、敏感记忆拒绝、Prompt Injection 防护
+- 安全：四级 RBAC、Service/Repository Scope、tenant/user 隔离、文档 ACL、Qdrant 原生过滤、Prompt Injection 防护
 - 可靠性：request_id 幂等、Redis session lock、限流、降级
 - 评测：pytest、Recall@K、MRR、Intent/Tool/Memory 指标
 
@@ -92,7 +92,7 @@ P50 / P95                     222.9 ms / 9166 ms
 
 ## 当前不足
 
-- 已有 JWT、tenant 和资源 ACL，但没有企业 SSO、MFA、Token 撤销和完整 RBAC；
+- 已有四级应用 RBAC、资源 Scope 和文档 ACL，但没有企业 SSO、MFA、SCIM、Token 撤销和集中式策略引擎；
 - 240 条困难评测已生成，但在线 A/B 只跑了首批 12 条；
 - 固定复杂路径不是动态 Planner；
 - 复杂生成延迟仍然较高；
@@ -114,4 +114,4 @@ GitHub MCP 实测链路：`版本查询 → recent_deployments → get_commit �
 - 不回避固定图、在线 A/B 样本量、延迟和记忆治理等缺点；
 - 能解释为什么做这个设计，而不只是用了哪些框架。
 
-完整学习内容见 [DevPilot 项目学习与面试指南](INTERVIEW_STUDY_GUIDE.md)。
+最新学习内容见 [DevPilot 项目学习与面试指南 V2](INTERVIEW_STUDY_GUIDE_V2.md)；原完整长版仍保留在 [详细指南](INTERVIEW_STUDY_GUIDE.md)。
